@@ -1,5 +1,5 @@
 from importlib import reload
-from typing import List, Optional, Set, Type
+from typing import List, Optional, Sequence, Set, Type
 
 from graia.saya.entities.behaviour import Behaviour
 from graia.saya.entities.cube import Cube
@@ -66,3 +66,13 @@ class Saya:
                 raise TypeError("detected an unexpected lost cube [{0}] in behaviour [{1}]".format(cube, behaviour))
             cube.beforeUnmount(UnmountVarious.Uninstall)
             behaviour.unmountCube(cube)
+    
+    def installCubes(self, cube_seq: Sequence[Cube], using_isolates: Optional["Isolate"] = None) -> None:
+        for i in cube_seq:
+            self.installCube(i, using_isolates)
+    
+    def uninstallCubes(self, cube_seq: Sequence[Cube]) -> None:
+        for i in cube_seq:
+            self.uninstallCube(i)
+    
+    
