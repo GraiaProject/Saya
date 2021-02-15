@@ -4,11 +4,14 @@ version = "0.0.1"
 description = ""
 authors = ["GreyElaina <31543961+GreyElaina@users.noreply.github.com>"]
 license = "MIT"
+packages = [
+    { include = "graia", from = "src" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-graia-broadcast = "^0.5.3"
-
+graia-broadcast = ">=0.7.0"
+loguru = "^0.5.3"
 
 [tool.poetry.dev-dependencies]
 black = "^20.8b1"

@@ -1,78 +1,153 @@
-from importlib import reload
-from typing import List, Optional, Sequence, Set, Type
+import asyncio
+import importlib
+from typing import Any, Dict, List, NoReturn, Optional, Union
+from contextlib import contextmanager
 
-from graia.saya.entities.behaviour import Behaviour
-from graia.saya.entities.cube import Cube
-from graia.saya.entities.isolate import Isolate
-from graia.saya.entities.schema import Schema
-from graia.saya.entities.various import MountVarious, UnmountVarious
+from graia.saya.channel import Channel
 
-def event_class_generator(target):
-    for i in target.__subclasses__():
-        yield i
-        if i.__subclasses__():
-            yield from event_class_generator(i)
-
-def findBehaviour(name: str):
-    for i in event_class_generator(Behaviour):
-      if i.__name__ == name:
-        return i
+from graia.saya.schema import BaseSchema
+from graia.saya.cube import Cube
+from graia.saya.behaviour import Behaviour, BehaviourInterface
+from graia.broadcast import Broadcast
+from .context import saya_instance, channel_instance
+from loguru import logger
 
 class Saya:
-    behaviours: List[Behaviour]
+    """Modular application for Graia Framework.
 
-    def __init__(self) -> None:
+    > 名称取自作品 魔女之旅 中的角色 "沙耶(Saya)", 愿所有人的心中都有一位活泼可爱的炭之魔女.
+
+    Saya 的架构分为: `Saya Controller`(控制器), `Module Channel`(模块容器), `Cube`(内容容器), `Behaviour`(行为).
+
+     - `Saya Controller` 负责管理各个模块的
+
+    Raises:
+        TypeError: [description]
+
+    Returns:
+        [type]: [description]
+    """
+    behaviour_interface: BehaviourInterface
+    behaviours: List[Behaviour]
+    channels: List[Channel]
+    broadcast: Optional[Broadcast] = None
+
+    def __init__(self, broadcast: Broadcast = None) -> None:
+        self.channels = []
         self.behaviours = []
+        self.behaviour_interface = BehaviourInterface(self)
+        self.behaviour_interface.require_contents[0].behaviours = self.behaviours
+
+        self.broadcast = broadcast
+    
+    @contextmanager
+    def module_context(self):
+        saya_token = saya_instance.set(self)
+        yield
+        saya_instance.reset(saya_token)
+
+    @staticmethod
+    def current() -> "Saya":
+        return saya_instance.get()
 
     @property
-    def behaviour_types(self) -> Set[Type[Behaviour]]:
-        return set(i.__class__ for i in self.behaviours)
+    def alive_channel_name_mapping(self) -> Dict[str, Channel]:
+        return {i.module: i for i in self.channels}
 
-    def hasBehaviours(self, *behaviour_types: Type[Behaviour]):
-        return set(behaviour_types).issubset(self.behaviour_types)
+    def require(self, module: str) -> Union[Channel, Any]:
+        logger.debug(f"require {module}")
+
+        if module in self.alive_channel_name_mapping:
+            return self.alive_channel_name_mapping[module]
+
+        channel = Channel(module)
+        channel_token = channel_instance.set(channel)
+
+        try:
+            imported_module = importlib.import_module(module, module)
+            channel._py_module = imported_module
+            with self.behaviour_interface.require_context(module) as interface:
+                for cube in channel.content:
+                    try:
+                        interface.allocate_cube(cube)
+                    except:
+                        logger.exception(f"an error occurred while loading the module's cube: {module}::{cube}")
+                        raise
+        finally:
+            channel_instance.reset(channel_token)
+
+        self.channels.append(channel)
+
+        if self.broadcast:
+            self.broadcast.postEvent(SayaModuleInstalled(
+                module=module,
+                channel=channel,
+                saya_instance=self,
+            ))
+
+        return channel
     
-    def registerBehaviour(self, behaviour: Behaviour) -> None:
-        if behaviour.__class__ in self.behaviour_types:
-            raise TypeError("behavior executor conflict")
-
-        self.behaviours.append(behaviour)
+    def exec_module_function(self, function_name, *args, **kwargs):
+        for channel in self.channels:
+            potential = getattr(channel._py_module, function_name, None)
+            if potential is not None and callable(potential):
+                try:
+                    potential(self, channel, *args, **kwargs)
+                except:
+                    logger.exception(f"error on executing function {channel}::{potential}")
     
-    def removeBehaviour(self, behaviour: Behaviour) -> None:
-        if behaviour.manage_cubes:
-            raise ValueError("this behaviour must has no any cube.")
-
-        if behaviour not in self.behaviours:
-            raise ValueError("this behaviour hasn't been registered.")
-
-        self.behaviours.remove(behaviour)
+    def install_behaviours(self, *behaviours: Behaviour):
+        self.behaviours.extend(behaviours)
     
-    def installCube(self, cube: Cube, using_isolates: Optional["Isolate"] = None) -> None:
-        require_set = set([i if i.__class__ is not str else findBehaviour(i) for i in cube.schema.require_behaviours])
-        if not require_set.issubset(self.behaviour_types):
-            raise TypeError("detected unexpected unregistered behaviour: {0}".format(
-                ", ".join(list(require_set.difference(self.behaviour_types)))
+    def uninstall_channel(self, channel: Channel):
+        if channel not in self.channels:
+            raise TypeError("assert an existed channel")
+        
+        if channel.module == "__main__":
+            raise ValueError("main channel cannot uninstall")
+
+        # TODO: builtin signal(async or sync)
+        if self.broadcast:
+            self.broadcast.postEvent(SayaModuleUninstall(
+                module=channel.module,
+                channel=channel,
+                saya_instance=self,
+            ))
+
+        with self.behaviour_interface.require_context(channel.module) as interface:
+            for cube in channel.content:
+                try:
+                    interface.uninstall_cube(cube)
+                except:
+                    logger.exception(f"an error occurred while loading the module's cube: {channel.module}::{cube}")
+                    raise
+        
+        self.channels.remove(channel)
+
+        if self.broadcast:
+            self.broadcast.postEvent(SayaModuleUninstalled(
+                module=channel.module,
+                saya_instance=self,
+            ))
+    
+    def reload_channel(self, channel: Channel):
+        self.uninstall_channel(channel)
+        self.require(channel.module)
+    
+    def create_main_channel(self) -> Channel:
+        may_current = self.alive_channel_name_mapping.get("__main__")
+        if may_current:
+            return may_current
+        main_channel = Channel("__main__")
+        self.channels.append(main_channel)
+        
+        if self.broadcast:
+            self.broadcast.postEvent(SayaModuleInstalled(
+                module="__main__",
+                channel=main_channel,
+                saya_instance=self,
             ))
         
-        for behaviour in list(filter(lambda x: x.__class__ in require_set, self.behaviours)):
-            if cube in behaviour.manage_cubes:
-                raise ValueError("detected managing cube in {0}".format(behaviour))
-            behaviour.mountCube(cube, using_isolates)
-            cube.onMount(MountVarious.Install)
-    
-    def uninstallCube(self, cube: Cube) -> None:
-        require_set = set([i if i.__class__ is not str else findBehaviour(i) for i in cube.schema.require_behaviours])
-        for behaviour in list(filter(lambda x: x.__class__ in require_set, self.behaviours)):
-            if cube not in behaviour.manage_cubes:
-                raise TypeError("detected an unexpected lost cube [{0}] in behaviour [{1}]".format(cube, behaviour))
-            cube.beforeUnmount(UnmountVarious.Uninstall)
-            behaviour.unmountCube(cube)
-    
-    def installCubes(self, cube_seq: Sequence[Cube], using_isolates: Optional["Isolate"] = None) -> None:
-        for i in cube_seq:
-            self.installCube(i, using_isolates)
-    
-    def uninstallCubes(self, cube_seq: Sequence[Cube]) -> None:
-        for i in cube_seq:
-            self.uninstallCube(i)
-    
-    
+        return main_channel
+
+from .event import SayaModuleInstalled, SayaModuleUninstall, SayaModuleUninstalled
