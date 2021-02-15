@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "saya-example-first"
+version = "0.0.1"
+description = ""
+authors = ["GreyElaina <31543961+GreyElaina@users.noreply.github.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+graia-saya = "^0.0.1"
+
+[tool.poetry.dev-dependencies]
+black = "^20.8b1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
