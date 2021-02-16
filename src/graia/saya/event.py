@@ -53,6 +53,6 @@ class SayaModuleUninstalled(BaseEvent):
 
 from graia.saya import Saya
 
-SayaModuleInstalled.update_forward_refs()
-SayaModuleUninstall.update_forward_refs()
-SayaModuleUninstalled.update_forward_refs()
+SayaModuleInstalled.update_forward_refs(Saya=Saya)
+SayaModuleUninstall.update_forward_refs(Saya=Saya)
+SayaModuleUninstalled.update_forward_refs(Saya=Saya)
