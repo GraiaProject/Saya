@@ -79,11 +79,12 @@ class Saya:
         self.channels.append(channel)
 
         if self.broadcast:
+            token = saya_instance.set(self)
             self.broadcast.postEvent(SayaModuleInstalled(
                 module=module,
                 channel=channel,
-                saya_instance=self,
             ))
+            saya_instance.reset(token)
 
         return channel
     
@@ -108,11 +109,12 @@ class Saya:
 
         # TODO: builtin signal(async or sync)
         if self.broadcast:
+            token = saya_instance.set(self)
             self.broadcast.postEvent(SayaModuleUninstall(
                 module=channel.module,
                 channel=channel,
-                saya_instance=self,
             ))
+            saya_instance.reset(token)
 
         with self.behaviour_interface.require_context(channel.module) as interface:
             for cube in channel.content:
@@ -125,10 +127,11 @@ class Saya:
         self.channels.remove(channel)
 
         if self.broadcast:
+            token = saya_instance.set(self)
             self.broadcast.postEvent(SayaModuleUninstalled(
                 module=channel.module,
-                saya_instance=self,
             ))
+            saya_instance.reset(token)
     
     def reload_channel(self, channel: Channel):
         self.uninstall_channel(channel)
@@ -142,11 +145,12 @@ class Saya:
         self.channels.append(main_channel)
         
         if self.broadcast:
+            token = saya_instance.set(self)
             self.broadcast.postEvent(SayaModuleInstalled(
                 module="__main__",
                 channel=main_channel,
-                saya_instance=self,
             ))
+            saya_instance.reset(token)
         
         return main_channel
 
