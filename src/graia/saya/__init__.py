@@ -12,6 +12,7 @@ from graia.broadcast import Broadcast
 from .context import saya_instance, channel_instance
 from loguru import logger
 
+
 class Saya:
     """Modular application for Graia Framework.
 
@@ -39,7 +40,7 @@ class Saya:
         self.behaviour_interface.require_contents[0].behaviours = self.behaviours
 
         self.broadcast = broadcast
-    
+
     @contextmanager
     def module_context(self):
         saya_token = saya_instance.set(self)
@@ -66,6 +67,14 @@ class Saya:
         try:
             imported_module = importlib.import_module(module, module)
             channel._py_module = imported_module
+            name = getattr(imported_module, '__name__', "")
+            description = getattr(imported_module, '__description__', "")
+            author = getattr(imported_module, '__author__', "")
+            usage = getattr(imported_module, '__usage__', "")
+            channel.name(name)
+            channel.description(description)
+            if author: channel.author(author)
+            channel.usage(usage)
             with self.behaviour_interface.require_context(module) as interface:
                 for cube in channel.content:
                     try:
@@ -87,7 +96,7 @@ class Saya:
             saya_instance.reset(token)
 
         return channel
-    
+
     def exec_module_function(self, function_name, *args, **kwargs):
         for channel in self.channels:
             potential = getattr(channel._py_module, function_name, None)
@@ -96,14 +105,14 @@ class Saya:
                     potential(self, channel, *args, **kwargs)
                 except:
                     logger.exception(f"error on executing function {channel}::{potential}")
-    
+
     def install_behaviours(self, *behaviours: Behaviour):
         self.behaviours.extend(behaviours)
-    
+
     def uninstall_channel(self, channel: Channel):
         if channel not in self.channels:
             raise TypeError("assert an existed channel")
-        
+
         if channel.module == "__main__":
             raise ValueError("main channel cannot uninstall")
 
@@ -123,7 +132,7 @@ class Saya:
                 except:
                     logger.exception(f"an error occurred while loading the module's cube: {channel.module}::{cube}")
                     raise
-        
+
         self.channels.remove(channel)
 
         if self.broadcast:
@@ -132,18 +141,18 @@ class Saya:
                 module=channel.module,
             ))
             saya_instance.reset(token)
-    
+
     def reload_channel(self, channel: Channel):
         self.uninstall_channel(channel)
         self.require(channel.module)
-    
+
     def create_main_channel(self) -> Channel:
         may_current = self.alive_channel_name_mapping.get("__main__")
         if may_current:
             return may_current
         main_channel = Channel("__main__")
         self.channels.append(main_channel)
-        
+
         if self.broadcast:
             token = saya_instance.set(self)
             self.broadcast.postEvent(SayaModuleInstalled(
@@ -151,7 +160,8 @@ class Saya:
                 channel=main_channel,
             ))
             saya_instance.reset(token)
-        
+
         return main_channel
+
 
 from .event import SayaModuleInstalled, SayaModuleUninstall, SayaModuleUninstalled
