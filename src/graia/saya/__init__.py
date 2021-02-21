@@ -71,10 +71,10 @@ class Saya:
             description = getattr(imported_module, '__description__', "")
             author = getattr(imported_module, '__author__', "")
             usage = getattr(imported_module, '__usage__', "")
-            channel.name(name)
-            channel.description(description)
-            if author: channel.author(author)
-            channel.usage(usage)
+            channel._name = name
+            channel._description = description
+            channel._author = author if isinstance(author, list) else [author]
+            channel._usage = usage
             with self.behaviour_interface.require_context(module) as interface:
                 for cube in channel.content:
                     try:
