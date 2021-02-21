@@ -13,7 +13,7 @@ from . import TestSchema
 class TestBehaviour(Behaviour):
     def allocate(self, content: Cube) -> Any:
         if isinstance(content.metaclass, TestSchema):
-            print("cube detected", content, content.metaclass)
+            #print("cube detected", content, content.metaclass)
             return content
     
     def uninstall(self, cube: Cube) -> Any:
@@ -26,9 +26,11 @@ saya.install_behaviours(TestBehaviour())
 saya.install_behaviours(BroadcastBehaviour(broadcast))
 
 with saya.module_context():
-    test_sub1_export = saya.require("test.test_sub1")
-    print(broadcast.listeners)
-    saya.uninstall_channel(test_sub1_export)
+    test_sub1_channel = saya.require("test.test_sub1")
+    print("尝试直接 require:", saya.require("test.test_sub1"))
+    print("====================")
+    print("通过 reload:", saya.reload_channel(test_sub1_channel))
+    print("再次尝试直接 require:", saya.require("test.test_sub1"))
 
 async def do_nothing():
     pass

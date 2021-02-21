@@ -1,5 +1,7 @@
 import asyncio
 import importlib
+import sys
+import copy
 from typing import Any, Dict, List, NoReturn, Optional, Union
 from contextlib import contextmanager
 
@@ -86,6 +88,7 @@ class Saya:
             ))
             saya_instance.reset(token)
 
+        logger.info(f"module loading finished: {module}")
         return channel
     
     def exec_module_function(self, function_name, *args, **kwargs):
@@ -125,6 +128,9 @@ class Saya:
                     raise
         
         self.channels.remove(channel)
+        for module_name, module in {k: v for k, v in sys.modules.items()}.items():
+            if module is channel._py_module:
+                del sys.modules[module_name]
 
         if self.broadcast:
             token = saya_instance.set(self)
@@ -133,9 +139,12 @@ class Saya:
             ))
             saya_instance.reset(token)
     
-    def reload_channel(self, channel: Channel):
+    def reload_channel(self, channel: Channel) -> Channel:
+        logger.info(f"reloading module: {channel.module}")
+        logger.info(f"reload: uninstall {channel.module}")
         self.uninstall_channel(channel)
-        self.require(channel.module)
+        logger.info(f"reload: install {channel.module}")
+        return self.require(channel.module)
     
     def create_main_channel(self) -> Channel:
         may_current = self.alive_channel_name_mapping.get("__main__")
