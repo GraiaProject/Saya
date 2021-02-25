@@ -1,3 +1,4 @@
+import sys
 import asyncio
 import importlib
 from typing import Any, Dict, List, NoReturn, Optional, Union
@@ -125,6 +126,13 @@ class Saya:
                     raise
         
         self.channels.remove(channel)
+
+        for var_name in dir(channel._py_module):
+            if not var_name.startswith('__'):
+                exec(f'del channel._py_module.{var_name}')
+
+        if not sys.modules.get(channel.module):
+            del sys.modules[channel.module]
 
         if self.broadcast:
             token = saya_instance.set(self)
