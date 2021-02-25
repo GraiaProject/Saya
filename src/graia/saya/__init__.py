@@ -143,7 +143,7 @@ class Saya:
     
     def reload_channel(self, channel: Channel):
         self.uninstall_channel(channel)
-        self.require(channel.module)
+        self.require(channel.module).copy_details(channel)
     
     def create_main_channel(self) -> Channel:
         may_current = self.alive_channel_name_mapping.get("__main__")

@@ -52,3 +52,13 @@ class Channel:
     
     def cancel(self, target: Union[Type, Callable, Any]):
         self.content = [i for i in self.content if i.content is not target]
+
+    def copy_details(self, channel: "Channel", ex_list: List[str] = []):
+        attr_list = ['_name', '_author', '_description']
+        attr_list[-1:-1] = ex_list
+        for attr in attr_list:
+            try:
+                self.__setattr__(attr, channel.__getattribute__(attr))
+            except AttributeError:
+                continue
+        return self
