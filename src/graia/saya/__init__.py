@@ -127,7 +127,7 @@ class Saya:
         
         self.channels.remove(channel)
 
-        for var_name in dir(channel._py_module):
+        for var_name in channel._py_module.__dict__.items():
             if not var_name.startswith('__'):
                 exec(f'del channel._py_module.{var_name}')
 
@@ -142,8 +142,16 @@ class Saya:
             saya_instance.reset(token)
     
     def reload_channel(self, channel: Channel):
+        attr_list = ['_name', '_author', '_description', 'export']
+
         self.uninstall_channel(channel)
-        self.require(channel.module).copy_details(channel)
+        new_channel = self.require(channel.module)
+        for attr in attr_list:
+            try:
+                new_channel.__setattr__(attr, channel.__getattribute__(attr))
+            except AttributeError:
+                continue
+        return new_channel
     
     def create_main_channel(self) -> Channel:
         may_current = self.alive_channel_name_mapping.get("__main__")
