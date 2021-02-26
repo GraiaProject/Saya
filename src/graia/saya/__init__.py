@@ -1,3 +1,4 @@
+import sys
 import asyncio
 import importlib
 from typing import Any, Dict, List, NoReturn, Optional, Union
@@ -126,6 +127,11 @@ class Saya:
         
         self.channels.remove(channel)
 
+        channel._py_module.__dict__.clear()
+
+        if sys.modules.get(channel.module):
+            del sys.modules[channel.module]
+
         if self.broadcast:
             token = saya_instance.set(self)
             self.broadcast.postEvent(SayaModuleUninstalled(
@@ -134,8 +140,16 @@ class Saya:
             saya_instance.reset(token)
     
     def reload_channel(self, channel: Channel):
+        attr_list = ['_name', '_author', '_description', 'export']
+
         self.uninstall_channel(channel)
-        self.require(channel.module)
+        new_channel = self.require(channel.module)
+        for attr in attr_list:
+            try:
+                new_channel.attr = channel.attr
+            except AttributeError:
+                continue
+        return new_channel
     
     def create_main_channel(self) -> Channel:
         may_current = self.alive_channel_name_mapping.get("__main__")
