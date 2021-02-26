@@ -8,12 +8,12 @@ from .context import channel_instance
 
 class Channel:
     module: str
-    _name: str
+    _name: str = None
     _author: List[str]
     _description: Optional[str] = None
 
-    export: Any = None
-    _py_module: ModuleType
+    _export: Any = None
+    _py_module: ModuleType = None
 
     content: List[Cube]
 
@@ -21,7 +21,7 @@ class Channel:
 
     def __init__(self, module: str) -> None:
         self.module = module
-        self.author = []
+        self._author = []
         self.content = []
 
     def name(self, name: str):
@@ -41,7 +41,7 @@ class Channel:
         return channel_instance.get()
 
     def export(self, target):
-        self.export = target
+        self._export = target
         return target
 
     def use(self, schema: BaseSchema):

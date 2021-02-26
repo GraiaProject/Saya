@@ -29,7 +29,8 @@ with saya.module_context():
     test_sub1_channel = saya.require("test.test_sub1")
     print("尝试直接 require:", saya.require("test.test_sub1"))
     print("====================")
-    print("通过 reload:", saya.reload_channel(test_sub1_channel))
+    saya.reload_channel(test_sub1_channel)
+    print("通过 reload:", test_sub1_channel._py_module)
     print("再次尝试直接 require:", saya.require("test.test_sub1"))
 
 async def do_nothing():
