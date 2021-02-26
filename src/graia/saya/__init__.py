@@ -127,9 +127,9 @@ class Saya:
         
         self.channels.remove(channel)
 
-        for var_name in channel._py_module.__dict__.items():
+        for var_name in dir(channel._py_module):
             if not var_name.startswith('__'):
-                exec(f'del channel._py_module.{var_name}')
+                channel._py_module.__dict__.clear()
 
         if sys.modules.get(channel.module):
             del sys.modules[channel.module]
@@ -148,7 +148,7 @@ class Saya:
         new_channel = self.require(channel.module)
         for attr in attr_list:
             try:
-                new_channel.__setattr__(attr, channel.__getattribute__(attr))
+                exec(f'new_channel.{attr} = channel.{attr}')
             except AttributeError:
                 continue
         return new_channel
