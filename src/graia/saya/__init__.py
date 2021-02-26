@@ -148,7 +148,7 @@ class Saya:
         new_channel = self.require(channel.module)
         for attr in attr_list:
             try:
-                exec(f'new_channel.{attr} = channel.{attr}')
+                new_channel.attr = channel.attr
             except AttributeError:
                 continue
         return new_channel
