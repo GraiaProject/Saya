@@ -14,3 +14,7 @@ class RequireContext:
 @dataclass(init=True)
 class AllocationContext:
     cube: "Cube"
+
+@dataclass(init=True)
+class RouteContext:
+    module: str
