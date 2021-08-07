@@ -13,7 +13,6 @@ class ListenerSchema(BaseSchema):
     inline_dispatchers: List[BaseDispatcher] = field(default_factory=list)
     headless_decorators: List[Decorator] = field(default_factory=list)
     priority: int = 16
-    enable_internal_access: bool = False
 
     def build_listener(self, callable: Callable):
         return Listener(
@@ -23,5 +22,4 @@ class ListenerSchema(BaseSchema):
             inline_dispatchers=self.inline_dispatchers,
             headless_decorators=self.headless_decorators,
             priority=self.priority,
-            enable_internal_access=self.enable_internal_access
         )
