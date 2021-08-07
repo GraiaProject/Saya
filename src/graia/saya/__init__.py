@@ -3,7 +3,7 @@ import asyncio
 import importlib
 import sys
 import copy
-from typing import Any, Dict, List, NoReturn, Optional, Union
+from typing import Any, Callable, Dict, List, NoReturn, Optional, Union
 from contextlib import contextmanager
 
 from graia.saya.channel import Channel

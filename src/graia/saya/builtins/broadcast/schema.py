@@ -1,13 +1,14 @@
 from dataclasses import dataclass, field
 from typing import Callable, List, Type
-from graia.broadcast import Listener, BaseEvent, BaseDispatcher
+from graia.broadcast import Listener, BaseDispatcher
+from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.namespace import Namespace
 from graia.saya.schema import BaseSchema
 
 @dataclass
 class ListenerSchema(BaseSchema):
-    listening_events: List[Type[BaseEvent]]
+    listening_events: List[Type[Dispatchable]]
     namespace: Namespace = None
     inline_dispatchers: List[BaseDispatcher] = field(default_factory=list)
     headless_decorators: List[Decorator] = field(default_factory=list)

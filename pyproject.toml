@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graia-saya"
-version = "0.0.9"
+version = "0.0.10"
 description = ""
 authors = ["GreyElaina <31543961+GreyElaina@users.noreply.github.com>"]
 license = "MIT"
