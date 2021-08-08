@@ -8,12 +8,12 @@ from .context import channel_instance
 
 class Channel:
     module: str
-    _name: str = None
+    _name: Optional[str] = None
     _author: List[str]
     _description: Optional[str] = None
 
     _export: Any = None
-    _py_module: ModuleType = None
+    _py_module: Optional[ModuleType] = None
 
     content: List[Cube]
 

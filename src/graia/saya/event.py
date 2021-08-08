@@ -3,7 +3,6 @@ from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.saya.channel import Channel
 from graia.saya.context import saya_instance
-from typing import TYPE_CHECKING
 
 
 class SayaModuleInstalled(Dispatchable):
@@ -17,7 +16,8 @@ class SayaModuleInstalled(Dispatchable):
         self.channel = channel
 
     class Dispatcher(BaseDispatcher):
-        async def catch(interface: "DispatcherInterface"):
+        @staticmethod
+        async def catch(interface: "DispatcherInterface[SayaModuleInstalled]"):
             from graia.saya import Saya
 
             if interface.annotation is Saya:
@@ -36,7 +36,8 @@ class SayaModuleUninstall(Dispatchable):
         self.channel = channel
 
     class Dispatcher(BaseDispatcher):
-        async def catch(interface: "DispatcherInterface"):
+        @staticmethod
+        async def catch(interface: "DispatcherInterface[SayaModuleUninstall]"):
             from graia.saya import Saya
 
             if interface.annotation is Saya:
@@ -53,10 +54,9 @@ class SayaModuleUninstalled(Dispatchable):
         self.module = module
 
     class Dispatcher(BaseDispatcher):
-        async def catch(interface: "DispatcherInterface"):
+        @staticmethod
+        async def catch(interface: "DispatcherInterface[SayaModuleUninstalled]"):
             from graia.saya import Saya
 
             if interface.annotation is Saya:
                 return saya_instance.get()
-            elif interface.annotation is Channel:
-                return interface.event.channel

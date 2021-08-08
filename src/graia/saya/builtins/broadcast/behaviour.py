@@ -13,7 +13,7 @@ class BroadcastBehaviour(Behaviour):
 
     def allocate(self, cube: Cube[Union[ListenerSchema,]]):
         if isinstance(cube.metaclass, ListenerSchema):
-            listener = cube.metaclass.build_listener(cube.content)
+            listener = cube.metaclass.build_listener(cube.content, self.broadcast)
             if not listener.namespace:
                 listener.namespace = self.broadcast.getDefaultNamespace()
             self.broadcast.listeners.append(listener)

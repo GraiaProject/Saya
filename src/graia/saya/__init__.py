@@ -183,27 +183,18 @@ class Saya:
             ))
             saya_instance.reset(token)
     
-    def reload_channel(self, channel: Channel = None, module: str = None) -> None:
+    def reload_channel(self, channel: Channel) -> None:
         """重载指定的模块
 
         Args:
-            channel (Channel, optional): 与下面的 `module` 二选一, 指定需要重载的模块. Defaults to None.
-            module (str, optional): 与上面的 `channel` 二选一, 指定需要重载的模块. Defaults to None.
+            channel (Channel): 指定需要重载的模块, 请使用 channels.get 方法获取
 
         Raises:
             TypeError: 没有给定需要被重载的模块(`channel` 与 `module` 都不给定)
             ValueError: 没有通过 `module` 找到对应的 Channel
         """
-        if not channel and not module:
-            raise TypeError("require a Channel or string.")
-
-        if not channel and module:
-            channel = self.channels.get(module)
-            if not channel:
-                raise ValueError("cannot found the module.")
-
         self.uninstall_channel(channel)
-        new_channel = self.require_resolve(channel.module)
+        new_channel: Channel = self.require_resolve(channel.module)
 
         channel._name = new_channel._name
         channel._author = new_channel._author
@@ -237,7 +228,7 @@ class Saya:
         
         return main_channel
     
-    def mount(self, mount_point: str, target) -> NoReturn:
+    def mount(self, mount_point: str, target):
         """挂载实例到 Saya 下, 以便整个模块系统共用.
 
         Args:
@@ -249,7 +240,7 @@ class Saya:
         """
         self.mounts[mount_point] = target
     
-    def unmount(self, mount_point: str) -> NoReturn:
+    def unmount(self, mount_point: str):
         """删除挂载及其挂载点
 
         Args:

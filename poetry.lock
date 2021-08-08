@@ -52,11 +52,11 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "graia-broadcast"
-version = "0.11.4"
+version = "0.12.1"
 description = "a highly customizable, elegantly designed event system based on asyncio"
 category = "main"
 optional = false
-python-versions = ">=3.6,<4.0"
+python-versions = ">=3.7,<4.0"
 
 [[package]]
 name = "importlib-metadata"
@@ -167,7 +167,7 @@ scheduler = []
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "cb6d9eda61eacd2b3907503dc8330a166426fe33dca6b353e274118a5ee76f4a"
+content-hash = "4528dfd0120513df1390a17b0e588c36e534ce45fde25ff56d474a3670368784"
 
 [metadata.files]
 appdirs = [
@@ -187,8 +187,8 @@ colorama = [
     {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
 ]
 graia-broadcast = [
-    {file = "graia-broadcast-0.11.4.tar.gz", hash = "sha256:27f1097e63f6dee9200ce8e5eafc1aa7a46a2023d7ab4d7a4415b86578824dbc"},
-    {file = "graia_broadcast-0.11.4-py3-none-any.whl", hash = "sha256:72902022cbf2b0d4e7b7753bd55127a77a000e4056bfaeda645897c11777e640"},
+    {file = "graia-broadcast-0.12.1.tar.gz", hash = "sha256:5ef8c01aabf66e8895bc0ab2798575e1fba2680fba60153b171e7d7b2baed588"},
+    {file = "graia_broadcast-0.12.1-py3-none-any.whl", hash = "sha256:363805feb3d36f79674d84d40516dd80b7d29bf2f770341df6e25c8b5fa3a09f"},
 ]
 importlib-metadata = [
     {file = "importlib_metadata-4.6.3-py3-none-any.whl", hash = "sha256:51c6635429c77cf1ae634c997ff9e53ca3438b495f10a55ba28594dd69764a8b"},

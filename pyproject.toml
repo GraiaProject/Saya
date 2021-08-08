@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graia-saya"
-version = "0.0.11"
+version = "0.0.12"
 description = ""
 authors = ["GreyElaina <31543961+GreyElaina@users.noreply.github.com>"]
 license = "MIT"
@@ -10,7 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-graia-broadcast = "^0.11.3"
+graia-broadcast = "^0.12.1"
 loguru = "^0.5.3"
 
 [tool.poetry.dev-dependencies]
