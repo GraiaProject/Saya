@@ -1,7 +1,8 @@
 import asyncio
 
-from graia.saya import Saya
 from graia.broadcast import Broadcast
+
+from graia.saya import Saya
 from graia.saya.builtins.broadcast import BroadcastBehaviour
 
 loop = asyncio.get_event_loop()

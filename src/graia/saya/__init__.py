@@ -1,19 +1,20 @@
-import sys
 import asyncio
+import copy
 import importlib
 import sys
-import copy
-from typing import Any, Callable, Dict, List, NoReturn, Optional, Union
 from contextlib import contextmanager
+from typing import Any, Callable, Dict, List, NoReturn, Optional, Union
 
-from graia.saya.channel import Channel
-
-from graia.saya.schema import BaseSchema
-from graia.saya.cube import Cube
-from graia.saya.behaviour import Behaviour, BehaviourInterface
 from graia.broadcast import Broadcast
-from .context import saya_instance, channel_instance,environment_metadata
 from loguru import logger
+
+from graia.saya.behaviour import Behaviour, BehaviourInterface
+from graia.saya.channel import Channel
+from graia.saya.cube import Cube
+from graia.saya.schema import BaseSchema
+
+from .context import channel_instance, environment_metadata, saya_instance
+
 
 class Saya:
     """Modular application for Graia Framework.
@@ -27,6 +28,7 @@ class Saya:
      - `Cube` 则用于使用 `Schema` 构造的元信息实例去描述内容
      - `Behaviour` 用于通过对 `Cube` 内的元信息进行解析, 并提供对其他已有接口的 Native 支持
     """
+
     behaviour_interface: BehaviourInterface
     behaviours: List[Behaviour]
     channels: Dict[str, Channel]
@@ -42,7 +44,7 @@ class Saya:
 
         self.mounts = {}
         self.broadcast = broadcast
-    
+
     @contextmanager
     def module_context(self):
         saya_token = saya_instance.set(self)
@@ -78,11 +80,13 @@ class Saya:
                     try:
                         interface.allocate_cube(cube)
                     except:
-                        logger.exception(f"an error occurred while loading the module's cube: {module}::{cube}")
+                        logger.exception(
+                            f"an error occurred while loading the module's cube: {module}::{cube}"
+                        )
                         raise
         finally:
             channel_instance.reset(channel_token)
-        
+
         return channel
 
     @staticmethod
@@ -119,10 +123,12 @@ class Saya:
 
         if self.broadcast:
             token = saya_instance.set(self)
-            self.broadcast.postEvent(SayaModuleInstalled(
-                module=module,
-                channel=channel,
-            ))
+            self.broadcast.postEvent(
+                SayaModuleInstalled(
+                    module=module,
+                    channel=channel,
+                )
+            )
             saya_instance.reset(token)
 
         logger.info(f"module loading finished: {module}")
@@ -131,12 +137,11 @@ class Saya:
             return channel._export
 
         return channel
-    
+
     def install_behaviours(self, *behaviours: Behaviour):
-        """在控制器中注册 Behaviour, 用于处理模块提供的内容
-        """
+        """在控制器中注册 Behaviour, 用于处理模块提供的内容"""
         self.behaviours.extend(behaviours)
-    
+
     def uninstall_channel(self, channel: Channel):
         """卸载指定的 Channel
 
@@ -149,17 +154,19 @@ class Saya:
         """
         if channel not in self.channels.values():
             raise TypeError("assert an existed channel")
-        
+
         if channel.module == "__main__":
             raise ValueError("main channel cannot uninstall")
 
         # TODO: builtin signal(async or sync)
         if self.broadcast:
             token = saya_instance.set(self)
-            self.broadcast.postEvent(SayaModuleUninstall(
-                module=channel.module,
-                channel=channel,
-            ))
+            self.broadcast.postEvent(
+                SayaModuleUninstall(
+                    module=channel.module,
+                    channel=channel,
+                )
+            )
             saya_instance.reset(token)
 
         with self.behaviour_interface.require_context(channel.module) as interface:
@@ -167,9 +174,11 @@ class Saya:
                 try:
                     interface.uninstall_cube(cube)
                 except:
-                    logger.exception(f"an error occurred while loading the module's cube: {channel.module}::{cube}")
+                    logger.exception(
+                        f"an error occurred while loading the module's cube: {channel.module}::{cube}"
+                    )
                     raise
-        
+
         del self.channels[channel.module]
         channel._py_module = None
 
@@ -178,11 +187,13 @@ class Saya:
 
         if self.broadcast:
             token = saya_instance.set(self)
-            self.broadcast.postEvent(SayaModuleUninstalled(
-                module=channel.module,
-            ))
+            self.broadcast.postEvent(
+                SayaModuleUninstalled(
+                    module=channel.module,
+                )
+            )
             saya_instance.reset(token)
-    
+
     def reload_channel(self, channel: Channel) -> None:
         """重载指定的模块
 
@@ -204,7 +215,7 @@ class Saya:
         channel.content = new_channel.content
 
         self.channels[channel.module] = channel
-    
+
     def create_main_channel(self) -> Channel:
         """创建不可被卸载的 `__main__` 主程序模块
 
@@ -217,17 +228,19 @@ class Saya:
 
         main_channel = Channel("__main__")
         self.channels["__main__"] = main_channel
-        
+
         if self.broadcast:
             token = saya_instance.set(self)
-            self.broadcast.postEvent(SayaModuleInstalled(
-                module="__main__",
-                channel=main_channel,
-            ))
+            self.broadcast.postEvent(
+                SayaModuleInstalled(
+                    module="__main__",
+                    channel=main_channel,
+                )
+            )
             saya_instance.reset(token)
-        
+
         return main_channel
-    
+
     def mount(self, mount_point: str, target):
         """挂载实例到 Saya 下, 以便整个模块系统共用.
 
@@ -239,7 +252,7 @@ class Saya:
             NoReturn: 已将实例挂载, 可能把已经注册的挂载点给覆盖了.
         """
         self.mounts[mount_point] = target
-    
+
     def unmount(self, mount_point: str):
         """删除挂载及其挂载点
 
@@ -248,12 +261,12 @@ class Saya:
 
         Returns:
             NoReturn: 已经删除
-        
+
         Raises:
             KeyError: 挂载点不存在
         """
         del self.mounts[mount_point]
-    
+
     def access(self, mount_point: str):
         """访问特定挂载点
 
@@ -262,10 +275,11 @@ class Saya:
 
         Returns:
             Any: 已经挂载的实例
-        
+
         Raises:
             KeyError: 挂载点不存在
         """
         return self.mounts[mount_point]
+
 
 from .event import SayaModuleInstalled, SayaModuleUninstall, SayaModuleUninstalled
