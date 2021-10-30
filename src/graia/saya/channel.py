@@ -1,10 +1,11 @@
-from typing import Any, List, Optional, Tuple, Type, Union, Callable
 from types import ModuleType
+from typing import Any, Callable, List, Optional, Tuple, Type, Union
 
 from graia.saya.cube import Cube
 
-from .schema import BaseSchema
 from .context import channel_instance
+from .schema import BaseSchema
+
 
 class Channel:
     module: str
@@ -48,6 +49,7 @@ class Channel:
         def use_wrapper(target: Union[Type, Callable, Any]):
             self.content.append(Cube(target, schema))
             return target
+
         return use_wrapper
 
     def cancel(self, target: Union[Type, Callable, Any]):

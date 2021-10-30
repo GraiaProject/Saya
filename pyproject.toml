@@ -15,6 +15,10 @@ loguru = "^0.5.3"
 
 [tool.poetry.dev-dependencies]
 black = "*"
+isort = "*"
+
+[tool.isort]
+profile = "black"
 
 [tool.poetry.extras]
 scheduler = ["graia-scheduler"]

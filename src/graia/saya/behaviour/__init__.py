@@ -1,3 +1,3 @@
+from .context import AllocationContext, RequireContext
 from .entity import Behaviour
-from .context import RequireContext, AllocationContext
 from .interface import BehaviourInterface
