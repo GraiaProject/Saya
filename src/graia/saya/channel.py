@@ -40,7 +40,7 @@ class Channel(Generic[M]):
 
     def __init__(self, module: str) -> None:
         self.module = module
-        self.meta: M = ChannelMeta([], None, None)
+        self.meta: M = ChannelMeta(author=[], name=None, description=None)
         self.content = []
 
     @property
