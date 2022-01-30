@@ -1,5 +1,15 @@
 from types import ModuleType
-from typing import Any, Callable, List, Optional, Tuple, Type, Union
+from typing import (
+    Any,
+    Callable,
+    Generic,
+    List,
+    Optional,
+    Type,
+    TypedDict,
+    TypeVar,
+    Union,
+)
 
 from graia.saya.cube import Cube
 
@@ -7,11 +17,19 @@ from .context import channel_instance
 from .schema import BaseSchema
 
 
-class Channel:
+class ChannelMeta(TypedDict):
+    author: List[str]
+    name: Optional[str]
+    description: Optional[str]
+
+
+M = TypeVar("M", bound=ChannelMeta)
+
+
+class Channel(Generic[M]):
     module: str
-    _name: Optional[str] = None
-    _author: List[str]
-    _description: Optional[str] = None
+
+    meta: M
 
     _export: Any = None
     _py_module: Optional[ModuleType] = None
@@ -22,16 +40,36 @@ class Channel:
 
     def __init__(self, module: str) -> None:
         self.module = module
-        self._author = []
+        self.meta: M = ChannelMeta([], None, None)
         self.content = []
 
+    @property
+    def _name(self):
+        return self.meta["name"]
+
+    @_name.setter
+    def _name(self, value: str):
+        self.meta["name"] = value
+
     def name(self, name: str):
-        self._name = name
+        self.meta["name"] = name
         return self
+
+    @property
+    def _author(self):
+        return self.meta["author"]
 
     def author(self, author: str):
         self._author.append(author)
         return self
+
+    @property
+    def _description(self):
+        return self.meta["description"]
+
+    @_description.setter
+    def _description(self, value: str):
+        self.meta["description"] = value
 
     def description(self, description: str):
         self._description = description
