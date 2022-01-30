@@ -179,7 +179,7 @@ scheduler = []
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "c66c96acd4becce592b541ab79c39f4f6137468f37121b36c14695e278010940"
+content-hash = "dddac44e1a0443d6f97ccf01a7d7b0bb50c29dea5cb643e6aae00d043d11fa66"
 
 [metadata.files]
 black = [
