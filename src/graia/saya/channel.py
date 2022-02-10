@@ -59,6 +59,10 @@ class Channel(Generic[M]):
     def _author(self):
         return self.meta["author"]
 
+    @_author.setter
+    def _author(self, value: List[str]):
+        self.meta["author"] = value
+    
     def author(self, author: str):
         self._author.append(author)
         return self
