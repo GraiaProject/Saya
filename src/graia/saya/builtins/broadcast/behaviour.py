@@ -16,11 +16,7 @@ class BroadcastBehaviour(Behaviour):
 
     def allocate(
         self,
-        cube: Cube[
-            Union[
-                ListenerSchema,
-            ]
-        ],
+        cube: Cube[ListenerSchema],
     ):
         if isinstance(cube.metaclass, ListenerSchema):
             listener = cube.metaclass.build_listener(cube.content, self.broadcast)

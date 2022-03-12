@@ -36,7 +36,7 @@ class Saya:
 
     mounts: Dict[str, Any]
 
-    def __init__(self, broadcast: Broadcast = None) -> None:
+    def __init__(self, broadcast: Optional[Broadcast] = None) -> None:
         self.channels = {}
         self.behaviours = []
         self.behaviour_interface = BehaviourInterface(self)

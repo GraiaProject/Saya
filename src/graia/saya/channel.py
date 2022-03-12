@@ -1,7 +1,10 @@
+import functools
+from re import L
 from types import ModuleType
 from typing import (
     Any,
     Callable,
+    Dict,
     Generic,
     List,
     Optional,
@@ -12,6 +15,7 @@ from typing import (
 )
 
 from graia.saya.cube import Cube
+import inspect
 
 from .context import channel_instance
 from .schema import BaseSchema
@@ -26,6 +30,24 @@ class ChannelMeta(TypedDict):
 M = TypeVar("M", bound=ChannelMeta)
 
 
+class ScopedContext:
+    content: Dict[str, Any]
+
+    def __init__(self, **kwargs) -> None:
+        self.content = kwargs
+
+    def __setattr__(self, __name: str, __value: Any) -> None:
+        if __name == "content":
+            raise AttributeError("'ScopedContext' object attribute 'content' is not overwritable")
+    
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "content":
+            return self.content
+        if __name not in self.content:
+            raise AttributeError(f"{__name} is not defined")
+        return self.content[__name]
+
+
 class Channel(Generic[M]):
     module: str
 
@@ -35,6 +57,8 @@ class Channel(Generic[M]):
     _py_module: Optional[ModuleType] = None
 
     content: List[Cube]
+    
+    scopes: Dict[Type, ScopedContext]
 
     # TODO: _export reload for other modules
 
@@ -48,7 +72,7 @@ class Channel(Generic[M]):
         return self.meta["name"]
 
     @_name.setter
-    def _name(self, value: str):
+    def _name(self, value: Optional[str]):
         self.meta["name"] = value
 
     def name(self, name: str):
@@ -72,7 +96,7 @@ class Channel(Generic[M]):
         return self.meta["description"]
 
     @_description.setter
-    def _description(self, value: str):
+    def _description(self, value: Optional[str]):
         self.meta["description"] = value
 
     def description(self, description: str):
@@ -96,3 +120,16 @@ class Channel(Generic[M]):
 
     def cancel(self, target: Union[Type, Callable, Any]):
         self.content = [i for i in self.content if i.content is not target]
+
+    def scoped_context(self, isolate_class: Type[Any]):
+        members = inspect.getmembers(isolate_class)
+        contents = {id(i.content): i for i in self.content}
+        # 用 id 的原因: 防止一些 unhashable 的对象给我塞进来.
+        objs_waitfor_check = [(contents[id(obj)], obj) for name, obj in members if id(obj) in contents]
+        context = self.scopes.setdefault(isolate_class, ScopedContext(
+            channel=self,
+        ))
+        for cube, obj in objs_waitfor_check:
+            if inspect.isfunction(obj):
+                cube.content = functools.partial(obj, context)
+        return isolate_class

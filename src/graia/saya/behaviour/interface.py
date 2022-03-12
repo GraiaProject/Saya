@@ -1,5 +1,5 @@
 import itertools
-from typing import TYPE_CHECKING, Any, Generator, List
+from typing import TYPE_CHECKING, Any, Generator, List, Optional
 
 from graia.broadcast.exceptions import RequirementCrashed
 
@@ -33,7 +33,7 @@ class BehaviourInterface:
     def _index(self):
         return self.require_contents[-1]._index
 
-    def require_context(self, module: str, behaviours: List["Behaviour"] = None):
+    def require_context(self, module: str, behaviours: Optional[List["Behaviour"]] = None):
         self.require_contents.append(RequireContext(module, behaviours or []))
         return self
 
