@@ -37,8 +37,8 @@ class Saya:
         self.behaviours = []
         self.behaviour_interface = BehaviourInterface(self)
         self.behaviour_interface.require_contents[0].behaviours = self.behaviours
-
         self.mounts = {}
+        self.broadcast = None
 
     @contextmanager
     def module_context(self):
@@ -99,29 +99,23 @@ class Saya:
             module: str,
             channel: Channel
     ):
+        if not self.broadcast:
+            return
         try:
             from graia.saya.builtins.broadcast import (
-                BroadcastBehaviour,
                 SayaModuleInstalled,
                 SayaModuleUninstall,
                 SayaModuleUninstalled
             )
         except ImportError:
             return
-
-        for behavior in self.behaviours:
-            if isinstance(behavior, BroadcastBehaviour):
-                broadcast = behavior.broadcast
-                break
-        else:
-            return
         token = saya_instance.set(self)
         if state == 'installed':
-            broadcast.postEvent(SayaModuleInstalled(module=module, channel=channel))
+            self.broadcast.postEvent(SayaModuleInstalled(module=module, channel=channel))
         elif state == 'uninstall':
-            broadcast.postEvent(SayaModuleUninstall(module=module, channel=channel))
+            self.broadcast.postEvent(SayaModuleUninstall(module=module, channel=channel))
         elif state == 'uninstalled':
-            broadcast.postEvent(SayaModuleUninstalled(module=module))
+            self.broadcast.postEvent(SayaModuleUninstalled(module=module))
         saya_instance.reset(token)
 
     def require(self, module: str, require_env: Any = None) -> Union[Channel, Any]:
@@ -159,6 +153,15 @@ class Saya:
     def install_behaviours(self, *behaviours: Behaviour):
         """在控制器中注册 Behaviour, 用于处理模块提供的内容"""
         self.behaviours.extend(behaviours)
+        if not self.broadcast:
+            try:
+                from graia.saya.builtins.broadcast import BroadcastBehaviour
+                broadcast_behaviour = next(
+                    filter(lambda x: isinstance(x, BroadcastBehaviour), self.behaviours)
+                )
+                self.broadcast = broadcast_behaviour.broadcast  # type: ignore
+            except (ImportError, StopIteration):
+                return
 
     def uninstall_channel(self, channel: Channel):
         """卸载指定的 Channel
