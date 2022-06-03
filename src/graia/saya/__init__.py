@@ -93,7 +93,7 @@ class Saya:
         """
         return environment_metadata.get(None)
 
-    def _broadcast_status(
+    def _broadcast_lifecycle(
             self,
             state: Literal['installed', 'uninstall', 'uninstalled'],
             module: str,
@@ -147,7 +147,7 @@ class Saya:
         self.channels[module] = channel
         environment_metadata.reset(env_token)
 
-        self._broadcast_status('installed', module, channel)
+        self._broadcast_lifecycle('installed', module, channel)
 
         logger.info(f"module loading finished: {module}")
 
@@ -177,7 +177,7 @@ class Saya:
             raise ValueError("main channel cannot uninstall")
 
         # TODO: builtin signal(async or sync)
-        self._broadcast_status('uninstall', channel.module, channel)
+        self._broadcast_lifecycle('uninstall', channel.module, channel)
 
         with self.behaviour_interface.require_context(channel.module) as interface:
             for cube in channel.content:
@@ -195,7 +195,7 @@ class Saya:
         if sys.modules.get(channel.module):
             del sys.modules[channel.module]
 
-        self._broadcast_status('uninstalled', channel.module, channel)
+        self._broadcast_lifecycle('uninstalled', channel.module, channel)
 
     def reload_channel(self, channel: Channel) -> None:
         """重载指定的模块
@@ -232,7 +232,7 @@ class Saya:
         main_channel = Channel("__main__")
         self.channels["__main__"] = main_channel
 
-        self._broadcast_status('installed', "__main__", main_channel)
+        self._broadcast_lifecycle('installed', "__main__", main_channel)
 
         return main_channel
 
