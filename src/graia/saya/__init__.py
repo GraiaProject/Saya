@@ -1,11 +1,8 @@
-import asyncio
-import copy
 import importlib
 import sys
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, List, NoReturn, Optional, Union
+from typing import Any, Dict, List, NoReturn, Union, Literal
 
-from graia.broadcast import Broadcast
 from loguru import logger
 
 from graia.saya.behaviour import Behaviour, BehaviourInterface
@@ -32,18 +29,16 @@ class Saya:
     behaviour_interface: BehaviourInterface
     behaviours: List[Behaviour]
     channels: Dict[str, Channel]
-    broadcast: Optional[Broadcast] = None
 
     mounts: Dict[str, Any]
 
-    def __init__(self, broadcast: Optional[Broadcast] = None) -> None:
+    def __init__(self) -> None:
         self.channels = {}
         self.behaviours = []
         self.behaviour_interface = BehaviourInterface(self)
         self.behaviour_interface.require_contents[0].behaviours = self.behaviours
 
         self.mounts = {}
-        self.broadcast = broadcast
 
     @contextmanager
     def module_context(self):
@@ -98,6 +93,37 @@ class Saya:
         """
         return environment_metadata.get(None)
 
+    def _broadcast_status(
+            self,
+            state: Literal['installed', 'uninstall', 'uninstalled'],
+            module: str,
+            channel: Channel
+    ):
+        try:
+            from graia.saya.builtins.broadcast import (
+                BroadcastBehaviour,
+                SayaModuleInstalled,
+                SayaModuleUninstall,
+                SayaModuleUninstalled
+            )
+        except ImportError:
+            return
+
+        for behavior in self.behaviours:
+            if isinstance(behavior, BroadcastBehaviour):
+                broadcast = behavior.broadcast
+                break
+        else:
+            return
+        token = saya_instance.set(self)
+        if state == 'installed':
+            broadcast.postEvent(SayaModuleInstalled(module=module, channel=channel))
+        elif state == 'uninstall':
+            broadcast.postEvent(SayaModuleUninstall(module=module, channel=channel))
+        elif state == 'uninstalled':
+            broadcast.postEvent(SayaModuleUninstalled(module=module))
+        saya_instance.reset(token)
+
     def require(self, module: str, require_env: Any = None) -> Union[Channel, Any]:
         """既处理 Channel, 也处理 Channel 中的 export 返回
 
@@ -121,15 +147,7 @@ class Saya:
         self.channels[module] = channel
         environment_metadata.reset(env_token)
 
-        if self.broadcast:
-            token = saya_instance.set(self)
-            self.broadcast.postEvent(
-                SayaModuleInstalled(
-                    module=module,
-                    channel=channel,
-                )
-            )
-            saya_instance.reset(token)
+        self._broadcast_status('installed', module, channel)
 
         logger.info(f"module loading finished: {module}")
 
@@ -159,15 +177,7 @@ class Saya:
             raise ValueError("main channel cannot uninstall")
 
         # TODO: builtin signal(async or sync)
-        if self.broadcast:
-            token = saya_instance.set(self)
-            self.broadcast.postEvent(
-                SayaModuleUninstall(
-                    module=channel.module,
-                    channel=channel,
-                )
-            )
-            saya_instance.reset(token)
+        self._broadcast_status('uninstall', channel.module, channel)
 
         with self.behaviour_interface.require_context(channel.module) as interface:
             for cube in channel.content:
@@ -185,14 +195,7 @@ class Saya:
         if sys.modules.get(channel.module):
             del sys.modules[channel.module]
 
-        if self.broadcast:
-            token = saya_instance.set(self)
-            self.broadcast.postEvent(
-                SayaModuleUninstalled(
-                    module=channel.module,
-                )
-            )
-            saya_instance.reset(token)
+        self._broadcast_status('uninstalled', channel.module, channel)
 
     def reload_channel(self, channel: Channel) -> None:
         """重载指定的模块
@@ -229,15 +232,7 @@ class Saya:
         main_channel = Channel("__main__")
         self.channels["__main__"] = main_channel
 
-        if self.broadcast:
-            token = saya_instance.set(self)
-            self.broadcast.postEvent(
-                SayaModuleInstalled(
-                    module="__main__",
-                    channel=main_channel,
-                )
-            )
-            saya_instance.reset(token)
+        self._broadcast_status('installed', "__main__", main_channel)
 
         return main_channel
 
@@ -281,5 +276,3 @@ class Saya:
         """
         return self.mounts[mount_point]
 
-
-from .event import SayaModuleInstalled, SayaModuleUninstall, SayaModuleUninstalled

@@ -75,13 +75,13 @@ import asyncio
 
 loop = asyncio.get_event_loop()
 broadcast = Broadcast(loop=loop)
-saya = Saya(broadcast) # 这里可以置空, 但是会丢失 Lifecycle 特性
+saya = Saya()
 ```
 
 创建 `BroadcastBehaviour` 的实例, 并将其注册到现有的 `Saya` 实例中:
 
 ```py
-saya.install_behaviours(BroadcastBehaviour(broadcast))
+saya.install_behaviours(BroadcastBehaviour(broadcast))  # 不会强制要求该 behaviour, 但是会丢失 Lifecycle 特性
 ```
 
 为了导入各个模块, `Saya Controller` 需要先进入上下文:
@@ -130,7 +130,7 @@ from graia.saya.builtins.broadcast import BroadcastBehaviour
 
 loop = asyncio.get_event_loop()
 broadcast = Broadcast(loop=loop)
-saya = Saya(broadcast)
+saya = Saya()
 saya.install_behaviours(BroadcastBehaviour(broadcast))
 
 with saya.module_context():

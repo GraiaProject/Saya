@@ -10,7 +10,6 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-graia-broadcast = ">=0.12.1"
 loguru = ">=0.5.3, < 0.7"
 
 [tool.poetry.dev-dependencies]
@@ -22,6 +21,8 @@ profile = "black"
 
 [tool.poetry.extras]
 scheduler = ["graia-scheduler"]
+broadcast = ["graia-broadcast"]
+full = ["graia-scheduler", "graia-broadcast"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

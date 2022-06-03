@@ -1,5 +1,4 @@
 import functools
-from re import L
 from types import ModuleType
 from typing import (
     Any,

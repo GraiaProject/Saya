@@ -1,8 +1,6 @@
 import itertools
 from typing import TYPE_CHECKING, Any, Generator, List, Optional
 
-from graia.broadcast.exceptions import RequirementCrashed
-
 from graia.saya.cube import Cube
 
 from .context import AllocationContext, RequireContext
@@ -11,7 +9,11 @@ from .entity import Behaviour
 if TYPE_CHECKING:
     from graia.saya import Saya
 
+
 # TODO: Lifecycle for Behaviour
+
+class RequirementCrashed(Exception):
+    pass
 
 
 class BehaviourInterface:
@@ -26,7 +28,7 @@ class BehaviourInterface:
         ]
 
     @property
-    def currentModule(self):
+    def current_module(self):
         return self.require_contents[-1].module
 
     @property
@@ -54,8 +56,8 @@ class BehaviourInterface:
         start_offset = self._index + int(bool(self._index))
 
         for self.require_contents[-1]._index, behaviour in enumerate(
-            itertools.islice(self.behaviour_generator(), start_offset, None, None),
-            start=start_offset,
+                itertools.islice(self.behaviour_generator(), start_offset, None, None),
+                start=start_offset,
         ):
             result = behaviour.allocate(cube)
 
@@ -71,8 +73,8 @@ class BehaviourInterface:
         start_offset = self._index + int(bool(self._index))
 
         for self.require_contents[-1]._index, behaviour in enumerate(
-            itertools.islice(self.behaviour_generator(), start_offset, None, None),
-            start=start_offset,
+                itertools.islice(self.behaviour_generator(), start_offset, None, None),
+                start=start_offset,
         ):
             result = behaviour.uninstall(cube)
 
