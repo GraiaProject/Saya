@@ -172,7 +172,7 @@ class Saya:
         with self.behaviour_interface.require_context(channel.module) as interface:
             for cube in channel.content:
                 try:
-                    interface.uninstall_cube(cube)
+                    interface.release_cube(cube)
                 except:
                     logger.exception(
                         f"an error occurred while loading the module's cube: {channel.module}::{cube}"

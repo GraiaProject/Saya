@@ -27,7 +27,7 @@ class BroadcastBehaviour(Behaviour):
             return
         return True
 
-    def uninstall(self, cube: Cube) -> Any:
+    def release(self, cube: Cube) -> Any:
         if isinstance(cube.metaclass, ListenerSchema):
             self.broadcast.removeListener(self.broadcast.getListener(cube.content))
         else:

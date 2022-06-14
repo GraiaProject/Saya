@@ -33,7 +33,9 @@ class BehaviourInterface:
     def _index(self):
         return self.require_contents[-1]._index
 
-    def require_context(self, module: str, behaviours: Optional[List["Behaviour"]] = None):
+    def require_context(
+        self, module: str, behaviours: Optional[List["Behaviour"]] = None
+    ):
         self.require_contents.append(RequireContext(module, behaviours or []))
         return self
 
@@ -67,14 +69,14 @@ class BehaviourInterface:
         else:
             raise RequirementCrashed(f"the dispatching requirement crashed: {cube}")
 
-    def uninstall_cube(self, cube: Cube) -> Any:
+    def release_cube(self, cube: Cube) -> Any:
         start_offset = self._index + int(bool(self._index))
 
         for self.require_contents[-1]._index, behaviour in enumerate(
             itertools.islice(self.behaviour_generator(), start_offset, None, None),
             start=start_offset,
         ):
-            result = behaviour.uninstall(cube)
+            result = behaviour.release(cube)
 
             if result is None:
                 continue

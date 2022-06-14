@@ -10,5 +10,5 @@ class Behaviour(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def uninstall(self, cube: Cube[Any]) -> Any:
+    def release(self, cube: Cube[Any]) -> Any:
         pass
