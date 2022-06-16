@@ -1,17 +1,13 @@
-import asyncio
-import copy
 import importlib
 import sys
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, List, NoReturn, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from graia.broadcast import Broadcast
 from loguru import logger
 
 from graia.saya.behaviour import Behaviour, BehaviourInterface
 from graia.saya.channel import Channel
-from graia.saya.cube import Cube
-from graia.saya.schema import BaseSchema
 
 from .context import channel_instance, environment_metadata, saya_instance
 
@@ -80,9 +76,7 @@ class Saya:
                     try:
                         interface.allocate_cube(cube)
                     except:
-                        logger.exception(
-                            f"an error occurred while loading the module's cube: {module}::{cube}"
-                        )
+                        logger.exception(f"an error occurred while loading the module's cube: {module}::{cube}")
                         raise
         finally:
             channel_instance.reset(channel_token)
@@ -174,9 +168,7 @@ class Saya:
                 try:
                     interface.release_cube(cube)
                 except:
-                    logger.exception(
-                        f"an error occurred while loading the module's cube: {channel.module}::{cube}"
-                    )
+                    logger.exception(f"an error occurred while loading the module's cube: {channel.module}::{cube}")
                     raise
 
         del self.channels[channel.module]

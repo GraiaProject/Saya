@@ -1,3 +1,4 @@
-from .context import AllocationContext, RequireContext
-from .entity import Behaviour
-from .interface import BehaviourInterface
+from .context import AllocationContext as AllocationContext
+from .context import RequireContext as RequireContext
+from .entity import Behaviour as Behaviour
+from .interface import BehaviourInterface as BehaviourInterface
