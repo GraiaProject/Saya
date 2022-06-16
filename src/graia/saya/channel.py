@@ -38,6 +38,7 @@ class ScopedContext:
     def __setattr__(self, __name: str, __value: Any) -> None:
         if __name == "content":
             raise AttributeError("'ScopedContext' object attribute 'content' is not overwritable")
+        self.content[__name] = __value
 
     def __getattr__(self, __name: str) -> Any:
         if __name == "content":
@@ -104,6 +105,11 @@ class Channel(Generic[M]):
 
     @staticmethod
     def current() -> "Channel":
+        """获取当前的 Channel 对象
+
+        Returns:
+            Channel: 当前的 Channel 对象
+        """
         return channel_instance.get()
 
     def export(self, target):
@@ -127,6 +133,7 @@ class Channel(Generic[M]):
         )
         contents = {id(i.content): i for i in self.content}
         members = inspect.getmembers(isolate_class, lambda obj: callable(obj) and id(obj) in contents)
+        # 用 callable(obj) 这样我们可以来点 AttachedCallable 之类的东西
         # 用 id 的原因: 防止一些 unhashable 的对象给我塞进来.
         for _, obj in members:
             contents[id(obj)].content = functools.partial(obj, context)
