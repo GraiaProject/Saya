@@ -10,8 +10,10 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-graia-broadcast = ">=0.12.1"
+graia-broadcast = {version = ">=0.12.1", optional = true}
 loguru = ">=0.5.3, < 0.7"
+graia-scheduler = {version = "^0.0.8", optional = true}
+
 
 [tool.poetry.dev-dependencies]
 black = "*"
@@ -20,7 +22,11 @@ isort = "*"
 [tool.isort]
 profile = "black"
 
+[tool.black]
+line-length = 120
+
 [tool.poetry.extras]
+broadcast = ["graia-broadcast"]
 scheduler = ["graia-scheduler"]
 
 [build-system]

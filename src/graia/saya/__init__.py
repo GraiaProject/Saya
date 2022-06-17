@@ -1,19 +1,19 @@
-import asyncio
-import copy
+from __future__ import annotations
+
 import importlib
 import sys
 from contextlib import contextmanager
-from typing import Any, Callable, Dict, List, NoReturn, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
-from graia.broadcast import Broadcast
 from loguru import logger
 
 from graia.saya.behaviour import Behaviour, BehaviourInterface
 from graia.saya.channel import Channel
-from graia.saya.cube import Cube
-from graia.saya.schema import BaseSchema
 
 from .context import channel_instance, environment_metadata, saya_instance
+
+if TYPE_CHECKING:
+    from graia.broadcast import Broadcast
 
 
 class Saya:
@@ -32,7 +32,7 @@ class Saya:
     behaviour_interface: BehaviourInterface
     behaviours: List[Behaviour]
     channels: Dict[str, Channel]
-    broadcast: Optional[Broadcast] = None
+    broadcast: Optional[Broadcast]
 
     mounts: Dict[str, Any]
 
@@ -80,9 +80,7 @@ class Saya:
                     try:
                         interface.allocate_cube(cube)
                     except:
-                        logger.exception(
-                            f"an error occurred while loading the module's cube: {module}::{cube}"
-                        )
+                        logger.exception(f"an error occurred while loading the module's cube: {module}::{cube}")
                         raise
         finally:
             channel_instance.reset(channel_token)
@@ -122,6 +120,8 @@ class Saya:
         environment_metadata.reset(env_token)
 
         if self.broadcast:
+            from .event import SayaModuleInstalled
+
             token = saya_instance.set(self)
             self.broadcast.postEvent(
                 SayaModuleInstalled(
@@ -160,6 +160,8 @@ class Saya:
 
         # TODO: builtin signal(async or sync)
         if self.broadcast:
+            from .event import SayaModuleUninstall
+
             token = saya_instance.set(self)
             self.broadcast.postEvent(
                 SayaModuleUninstall(
@@ -174,9 +176,7 @@ class Saya:
                 try:
                     interface.release_cube(cube)
                 except:
-                    logger.exception(
-                        f"an error occurred while loading the module's cube: {channel.module}::{cube}"
-                    )
+                    logger.exception(f"an error occurred while loading the module's cube: {channel.module}::{cube}")
                     raise
 
         del self.channels[channel.module]
@@ -186,6 +186,8 @@ class Saya:
             del sys.modules[channel.module]
 
         if self.broadcast:
+            from .event import SayaModuleUninstalled
+
             token = saya_instance.set(self)
             self.broadcast.postEvent(
                 SayaModuleUninstalled(
@@ -230,6 +232,8 @@ class Saya:
         self.channels["__main__"] = main_channel
 
         if self.broadcast:
+            from .event import SayaModuleInstalled
+
             token = saya_instance.set(self)
             self.broadcast.postEvent(
                 SayaModuleInstalled(
@@ -280,6 +284,3 @@ class Saya:
             KeyError: 挂载点不存在
         """
         return self.mounts[mount_point]
-
-
-from .event import SayaModuleInstalled, SayaModuleUninstall, SayaModuleUninstalled

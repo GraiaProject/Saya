@@ -21,9 +21,7 @@ class BehaviourInterface:
 
     def __init__(self, saya_instance: "Saya") -> None:
         self.saya = saya_instance
-        self.require_contents = [
-            RequireContext("graia.saya.__special__.global_behaviours", [])
-        ]
+        self.require_contents = [RequireContext("graia.saya.__special__.global_behaviours", [])]
 
     @property
     def currentModule(self):
@@ -33,9 +31,7 @@ class BehaviourInterface:
     def _index(self):
         return self.require_contents[-1]._index
 
-    def require_context(
-        self, module: str, behaviours: Optional[List["Behaviour"]] = None
-    ):
+    def require_context(self, module: str, behaviours: Optional[List["Behaviour"]] = None):
         self.require_contents.append(RequireContext(module, behaviours or []))
         return self
 

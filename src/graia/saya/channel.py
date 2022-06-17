@@ -1,5 +1,5 @@
 import functools
-from re import L
+import inspect
 from types import ModuleType
 from typing import (
     Any,
@@ -15,7 +15,6 @@ from typing import (
 )
 
 from graia.saya.cube import Cube
-import inspect
 
 from .context import channel_instance
 from .schema import BaseSchema
@@ -39,7 +38,8 @@ class ScopedContext:
     def __setattr__(self, __name: str, __value: Any) -> None:
         if __name == "content":
             raise AttributeError("'ScopedContext' object attribute 'content' is not overwritable")
-    
+        self.content[__name] = __value
+
     def __getattr__(self, __name: str) -> Any:
         if __name == "content":
             return self.content
@@ -57,7 +57,7 @@ class Channel(Generic[M]):
     _py_module: Optional[ModuleType] = None
 
     content: List[Cube]
-    
+
     scopes: Dict[Type, ScopedContext]
 
     # TODO: _export reload for other modules
@@ -86,7 +86,7 @@ class Channel(Generic[M]):
     @_author.setter
     def _author(self, value: List[str]):
         self.meta["author"] = value
-    
+
     def author(self, author: str):
         self._author.append(author)
         return self
@@ -105,6 +105,11 @@ class Channel(Generic[M]):
 
     @staticmethod
     def current() -> "Channel":
+        """获取当前的 Channel 对象
+
+        Returns:
+            Channel: 当前的 Channel 对象
+        """
         return channel_instance.get()
 
     def export(self, target):
@@ -122,14 +127,13 @@ class Channel(Generic[M]):
         self.content = [i for i in self.content if i.content is not target]
 
     def scoped_context(self, isolate_class: Type[Any]):
-        members = inspect.getmembers(isolate_class)
+        context = self.scopes.setdefault(
+            isolate_class,
+            ScopedContext(channel=self),
+        )
         contents = {id(i.content): i for i in self.content}
+        members = inspect.getmembers(isolate_class, lambda obj: callable(obj) and id(obj) in contents)
         # 用 id 的原因: 防止一些 unhashable 的对象给我塞进来.
-        objs_waitfor_check = [(contents[id(obj)], obj) for name, obj in members if id(obj) in contents]
-        context = self.scopes.setdefault(isolate_class, ScopedContext(
-            channel=self,
-        ))
-        for cube, obj in objs_waitfor_check:
-            if inspect.isfunction(obj):
-                cube.content = functools.partial(obj, context)
+        for _, obj in members:
+            contents[id(obj)].content = functools.partial(obj, context)
         return isolate_class
