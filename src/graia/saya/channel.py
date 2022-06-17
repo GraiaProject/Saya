@@ -133,7 +133,6 @@ class Channel(Generic[M]):
         )
         contents = {id(i.content): i for i in self.content}
         members = inspect.getmembers(isolate_class, lambda obj: callable(obj) and id(obj) in contents)
-        # 用 callable(obj) 这样我们可以来点 AttachedCallable 之类的东西
         # 用 id 的原因: 防止一些 unhashable 的对象给我塞进来.
         for _, obj in members:
             contents[id(obj)].content = functools.partial(obj, context)

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import importlib
 import sys
 from contextlib import contextmanager
@@ -30,11 +32,11 @@ class Saya:
     behaviour_interface: BehaviourInterface
     behaviours: List[Behaviour]
     channels: Dict[str, Channel]
-    broadcast: Optional["Broadcast"]
+    broadcast: Optional[Broadcast]
 
     mounts: Dict[str, Any]
 
-    def __init__(self, broadcast: Optional["Broadcast"] = None) -> None:
+    def __init__(self, broadcast: Optional[Broadcast] = None) -> None:
         self.channels = {}
         self.behaviours = []
         self.behaviour_interface = BehaviourInterface(self)
