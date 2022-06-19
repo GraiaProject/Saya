@@ -1,9 +1,9 @@
 from dataclasses import dataclass
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, Optional, TypeVar
 
 from .schema import BaseSchema
 
-T = TypeVar("T", None, BaseSchema)
+T = TypeVar("T", bound=Optional[BaseSchema])
 
 
 @dataclass(init=True)
