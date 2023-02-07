@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 import functools
 import inspect
+from importlib.metadata import distribution
 from types import ModuleType
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -12,9 +16,13 @@ from typing import (
     TypedDict,
     TypeVar,
     Union,
+    cast,
 )
 
 from graia.saya.cube import Cube
+
+if TYPE_CHECKING:
+    from typing_extensions import NotRequired
 
 from .context import channel_instance
 from .schema import BaseSchema
@@ -22,8 +30,44 @@ from .schema import BaseSchema
 
 class ChannelMeta(TypedDict):
     author: List[str]
-    name: Optional[str]
-    description: Optional[str]
+    name: NotRequired[str]
+    version: NotRequired[str]
+    license: NotRequired[str]
+    urls: NotRequired[Dict[str, str]]
+    description: NotRequired[str]
+    icon: NotRequired[str]
+    classifier: List[str]
+    dependencies: List[str]
+
+    standards: List[str]
+    frameworks: List[str]
+    config_endpoints: List[str]
+    component_endpoints: List[str]
+
+
+def _default_channel_meta() -> ChannelMeta:
+    return ChannelMeta(
+        author=[],
+        classifier=[],
+        dependencies=[],
+        standards=[],
+        frameworks=[],
+        config_endpoints=[],
+        component_endpoints=[],
+    )
+
+
+def get_channel_meta(module: str) -> ChannelMeta:
+    dist = distribution(module)
+    meta = cast(dict[str, Any], _default_channel_meta())
+    meta |= dist.metadata.json
+    if meta["author"]:  # "author" in dist.metadata.json and dist.metadata.json["author"]
+        meta["author"] = meta["author"].split(",")
+    elif "author_email" in meta:
+        meta["author"] = meta["author_email"].split(",")
+    meta["urls"] = dict(i.split(", ") for i in meta.get("project_url", ()))
+    meta["dependencies"] = dist.requires or []
+    return cast(ChannelMeta, meta)
 
 
 M = TypeVar("M", bound=ChannelMeta)
@@ -64,44 +108,8 @@ class Channel(Generic[M]):
 
     def __init__(self, module: str) -> None:
         self.module = module
-        self.meta: M = ChannelMeta(author=[], name=None, description=None)
+        self.meta = cast(M, _default_channel_meta())
         self.content = []
-
-    @property
-    def _name(self):
-        return self.meta["name"]
-
-    @_name.setter
-    def _name(self, value: Optional[str]):
-        self.meta["name"] = value
-
-    def name(self, name: str):
-        self.meta["name"] = name
-        return self
-
-    @property
-    def _author(self):
-        return self.meta["author"]
-
-    @_author.setter
-    def _author(self, value: List[str]):
-        self.meta["author"] = value
-
-    def author(self, author: str):
-        self._author.append(author)
-        return self
-
-    @property
-    def _description(self):
-        return self.meta["description"]
-
-    @_description.setter
-    def _description(self, value: Optional[str]):
-        self.meta["description"] = value
-
-    def description(self, description: str):
-        self._description = description
-        return self
 
     @staticmethod
     def current() -> "Channel":
