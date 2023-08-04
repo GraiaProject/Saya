@@ -1,34 +1,42 @@
-[tool.poetry]
+[tool.pdm]
+[tool.pdm.dev-dependencies]
+dev = [
+    "black",
+    "isort",
+    "creart>=0.3.0",
+]
+
+[tool.pdm.build]
+includes = [
+    "src/graia",
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[project]
+authors = [
+    {name = "GreyElaina", email = "31543961+GreyElaina@users.noreply.github.com"},
+]
+requires-python = ">=3.8,<4.0"
+dependencies = [
+    "loguru<0.7,>=0.5.3",
+    "importlib-metadata~=6.8",
+]
 name = "graia-saya"
 version = "0.0.16"
 description = ""
-authors = ["GreyElaina <31543961+GreyElaina@users.noreply.github.com>"]
-license = "MIT"
-packages = [
-    { include = "graia", from = "src" }
+license = {text = "MIT"}
+
+[project.optional-dependencies]
+broadcast = [
+    "graia-broadcast>=0.23.0",
+]
+scheduler = [
+    "graia-scheduler<1.0.0,>=0.2.0",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.7"
-graia-broadcast = {version = ">=0.12.1", optional = true}
-loguru = ">=0.5.3, < 0.7"
-graia-scheduler = {version = "^0.0.8", optional = true}
-
-
-[tool.poetry.dev-dependencies]
-black = "*"
-isort = "*"
-
-[tool.isort]
-profile = "black"
-
-[tool.black]
-line-length = 120
-
-[tool.poetry.extras]
-broadcast = ["graia-broadcast"]
-scheduler = ["graia-scheduler"]
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[project.entry-points."creart.creators"]
+saya = "graia.saya.creator:SayaCreator"
+broadcast_behaviour = "graia.saya.creator:BroadcastBehaviourCreator"
