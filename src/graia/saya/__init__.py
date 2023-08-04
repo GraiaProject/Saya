@@ -209,9 +209,7 @@ class Saya:
         self.uninstall_channel(channel)
         new_channel: Channel = self.require_resolve(channel.module)
 
-        channel._name = new_channel._name
-        channel._author = new_channel._author
-        channel._description = new_channel._description
+        channel.meta = new_channel.meta
         channel._export = new_channel._export
         channel._py_module = new_channel._py_module
         channel.content = new_channel.content

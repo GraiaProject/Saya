@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import functools
 import inspect
-from importlib.metadata import distribution
 from types import ModuleType
 from typing import (
     TYPE_CHECKING,
@@ -18,6 +17,11 @@ from typing import (
     Union,
     cast,
 )
+
+try:
+    from importlib_metadata import distribution
+except ImportError:
+    from importlib.metadata import distribution
 
 from graia.saya.cube import Cube
 
@@ -59,7 +63,7 @@ def _default_channel_meta() -> ChannelMeta:
 
 def get_channel_meta(module: str) -> ChannelMeta:
     dist = distribution(module)
-    meta = cast(dict[str, Any], _default_channel_meta())
+    meta = cast(Dict[str, Any], _default_channel_meta())
     meta |= dist.metadata.json
     if meta["author"]:  # "author" in dist.metadata.json and dist.metadata.json["author"]
         meta["author"] = meta["author"].split(",")

@@ -1,9 +1,11 @@
-from typing import Callable, Dict, Any, TypeVar
+import functools
+from typing import Any, Callable, Dict, TypeVar
+
+from typing_extensions import ParamSpec
+
+from .channel import Channel
 from .cube import Cube
 from .schema import BaseSchema
-from .channel import Channel
-from typing_extensions import ParamSpec
-import functools
 
 
 def ensure_buffer(func: Callable) -> Dict[str, Any]:
