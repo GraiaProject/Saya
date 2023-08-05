@@ -26,8 +26,9 @@ dependencies = [
 ]
 name = "graia-saya"
 version = "0.0.18"
-description = ""
+description = "a modular implementation with modern design and injection"
 license = {text = "MIT"}
+readme = "README.md"
 
 [project.optional-dependencies]
 broadcast = [
