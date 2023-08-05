@@ -25,7 +25,7 @@ dependencies = [
     "importlib-metadata~=6.8; python_version < \"3.10\"",
 ]
 name = "graia-saya"
-version = "0.0.16"
+version = "0.0.18"
 description = ""
 license = {text = "MIT"}
 
