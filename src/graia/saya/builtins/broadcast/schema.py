@@ -7,7 +7,6 @@ from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.entities.listener import Listener
 from graia.broadcast.entities.namespace import Namespace
 from graia.broadcast.typing import T_Dispatcher
-
 from graia.saya.schema import BaseSchema
 
 
