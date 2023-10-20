@@ -215,6 +215,34 @@ modules.module_as_dir::模块加载成功!!!
 modules.module_as_dir::模块加载成功!!!
 ```
 
+## Factory
+
+`saya.factory` 提供了 `factory` 与 `buffer_modifier` 两个装饰器, 用于进一步构建自定义的装饰器来构造用于 `Channel.use` 的 `Schema` .
+
+以 `ListenerSchema` 为例：
+
+```python
+from graia.saya.factory import factory
+
+@factory
+def listen(*event) -> SchemaWrapper:
+    def wrapper(func: Callable, buffer: Dict[str, Any]) -> ListenerSchema:
+        buffer["inline_dispatchers"] = buffer.pop("dispatchers", [])
+        return ListenerSchema(listening_events=list(event), **buffer)
+
+    return wrapper
+```
+
+再将其装饰在响应的函数上：
+
+```python
+from graia.saya.builtins.broadcast.shortcut import listen
+
+@listen(...)  # 填入你需要监听的事件
+async def module_listener():
+    print("事件被触发!!!!")
+```
+
 ## 协议
 
 本项目使用 MIT 作为开源协议.
