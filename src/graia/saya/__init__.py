@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib
 import sys
+import warnings
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
@@ -222,6 +223,11 @@ class Saya:
         Returns:
             Channel: 属性 `name` 值为 `__main__`, 且无法被 `uninstall_channel` 卸载的模块.
         """
+        warnings.warn(
+            "create_main_channel is deprecated, use main_channel instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         may_current = self.channels.get("__main__")
         if may_current:
             return may_current
@@ -242,6 +248,42 @@ class Saya:
             saya_instance.reset(token)
 
         return main_channel
+
+    @contextmanager
+    def main_context(self):
+        """创建或加载不可被卸载的 `__main__` 主程序上下文, 如同使用 `Saya.require` 加载模块一样
+
+        在单文件结构/临时测试环境下推荐使用该方法; 在正式项目中, 请使用 `Saya.require` 加载模块.
+        """
+        if "__main__" not in self.channels:
+            main_channel = Channel("__main__")
+            self.channels["__main__"] = main_channel
+        else:
+            main_channel = self.channels["__main__"]
+        token = channel_instance.set(main_channel)
+        yield main_channel
+        try:
+            with self.behaviour_interface.require_context("__main__") as interface:
+                for cube in main_channel.content:
+                    try:
+                        interface.allocate_cube(cube)
+                    except:
+                        logger.exception(f"an error occurred while loading the module's cube: __main__::{cube}")
+                        raise
+        finally:
+            channel_instance.reset(token)
+
+        if self.broadcast:
+            from .event import SayaModuleInstalled
+
+            token = saya_instance.set(self)
+            self.broadcast.postEvent(
+                SayaModuleInstalled(
+                    module="__main__",
+                    channel=main_channel,
+                )
+            )
+            saya_instance.reset(token)
 
     def mount(self, mount_point: str, target):
         """挂载实例到 Saya 下, 以便整个模块系统共用.
