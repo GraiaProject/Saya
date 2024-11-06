@@ -224,7 +224,7 @@ class Saya:
             Channel: 属性 `name` 值为 `__main__`, 且无法被 `uninstall_channel` 卸载的模块.
         """
         warnings.warn(
-            "create_main_channel is deprecated, use main_channel instead",
+            "create_main_channel is deprecated, use main_context instead",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -254,6 +254,12 @@ class Saya:
         """创建或加载不可被卸载的 `__main__` 主程序上下文, 如同使用 `Saya.require` 加载模块一样
 
         在单文件结构/临时测试环境下推荐使用该方法; 在正式项目中, 请使用 `Saya.require` 加载模块.
+
+        Examples:
+            ```python
+            >>> with saya.main_context() as main_channel:
+            >>>     # do something
+            ```
         """
         if "__main__" not in self.channels:
             main_channel = Channel("__main__")
