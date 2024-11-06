@@ -4,7 +4,6 @@ import functools
 import inspect
 from types import ModuleType
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -18,16 +17,10 @@ from typing import (
     cast,
 )
 
-try:
-    from importlib_metadata import distribution
-except ImportError:
-    from importlib.metadata import distribution
+from importlib_metadata import distribution
+from typing_extensions import NotRequired
 
-from graia.saya.cube import Cube
-
-if TYPE_CHECKING:
-    from typing_extensions import NotRequired
-
+from .cube import Cube
 from .context import channel_instance
 from .schema import BaseSchema
 
@@ -81,7 +74,7 @@ class ScopedContext:
     content: Dict[str, Any]
 
     def __init__(self, **kwargs) -> None:
-        self.content = kwargs
+        object.__setattr__(self, "content", kwargs)
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         if __name == "content":
@@ -114,6 +107,7 @@ class Channel(Generic[M]):
         self.module = module
         self.meta = cast(M, _default_channel_meta())
         self.content = []
+        self.scopes = {}
 
     @staticmethod
     def current() -> "Channel":

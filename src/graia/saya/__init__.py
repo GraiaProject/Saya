@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import importlib
 import sys
-import warnings
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
@@ -10,6 +9,8 @@ from loguru import logger
 
 from graia.saya.behaviour import Behaviour, BehaviourInterface
 from graia.saya.channel import Channel
+
+from typing_extensions import deprecated
 
 from .context import channel_instance, environment_metadata, saya_instance
 
@@ -217,17 +218,13 @@ class Saya:
 
         self.channels[channel.module] = channel
 
+    @deprecated("create_main_channel is deprecated, use main_context instead", category=DeprecationWarning)
     def create_main_channel(self) -> Channel:
         """创建不可被卸载的 `__main__` 主程序模块
 
         Returns:
             Channel: 属性 `name` 值为 `__main__`, 且无法被 `uninstall_channel` 卸载的模块.
         """
-        warnings.warn(
-            "create_main_channel is deprecated, use main_context instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         may_current = self.channels.get("__main__")
         if may_current:
             return may_current
