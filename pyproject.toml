@@ -26,7 +26,7 @@ dependencies = [
     "typing-extensions>=4.5.0",
 ]
 name = "graia-saya"
-version = "0.0.19"
+version = "0.0.20"
 description = "a modular implementation with modern design and injection"
 license = {text = "MIT"}
 readme = "README.md"
